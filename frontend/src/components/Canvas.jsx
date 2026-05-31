@@ -1,6 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Undo2, Redo2, Trash2, Eraser, Brush, Cpu } from 'lucide-react';
+import { Undo2, Redo2, Trash2, Eraser, Brush, Cpu, Grid, Sparkles, Download } from 'lucide-react';
 import './Canvas.css';
+
+const COLORS = [
+  { name: 'White', value: '#ffffff' },
+  { name: 'Blue', value: '#38bdf8' },
+  { name: 'Emerald', value: '#34d399' },
+  { name: 'Violet', value: '#c084fc' },
+  { name: 'Yellow', value: '#fbbf24' }
+];
 
 const Canvas = ({ onSolve, isLoading }) => {
   const canvasRef = useRef(null);
@@ -8,6 +16,9 @@ const Canvas = ({ onSolve, isLoading }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [tool, setTool] = useState('draw'); // 'draw' | 'erase'
   const [brushSize, setBrushSize] = useState(6);
+  const [drawColor, setDrawColor] = useState('#ffffff');
+  const [gridEnabled, setGridEnabled] = useState(true);
+  const [brushStyle, setBrushStyle] = useState('solid'); // 'solid' | 'chalk'
   
   // History stacks for undo/redo
   const [undoStack, setUndoStack] = useState([]);
@@ -25,11 +36,9 @@ const Canvas = ({ onSolve, isLoading }) => {
     const context = canvas.getContext('2d');
     context.lineCap = 'round';
     context.lineJoin = 'round';
-    context.strokeStyle = '#ffffff';
-    context.lineWidth = brushSize;
     contextRef.current = context;
 
-    // Fill background with solid black
+    // Fill background with transparency
     clearCanvas(false);
   }, []);
 
@@ -64,6 +73,28 @@ const Canvas = ({ onSolve, isLoading }) => {
     return { x, y };
   };
 
+  // Helper to apply current drawing style properties to context
+  const applyDrawingStyle = (ctx, currentTool = tool, currentStyle = brushStyle, size = brushSize, color = drawColor) => {
+    ctx.lineWidth = size;
+    if (currentTool === 'erase') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1.0;
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      if (currentStyle === 'chalk') {
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = color;
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 0.88;
+      } else {
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 1.0;
+      }
+    }
+  };
+
   const startDrawing = (e) => {
     e.preventDefault();
     const { x, y } = getCoordinates(e);
@@ -76,8 +107,9 @@ const Canvas = ({ onSolve, isLoading }) => {
     const ctx = contextRef.current;
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.strokeStyle = tool === 'erase' ? '#06070a' : '#ffffff';
-    ctx.lineWidth = brushSize;
+    
+    applyDrawingStyle(ctx);
+    
     ctx.lineTo(x, y);
     ctx.stroke();
   };
@@ -91,8 +123,9 @@ const Canvas = ({ onSolve, isLoading }) => {
     
     pointsRef.current.push({ x, y });
     
-    // Clear canvas and redraw smooth stroke
-    // Actually, drawing incrementally is simpler and faster on canvas:
+    applyDrawingStyle(ctx);
+    
+    // Draw smooth bezier curves
     if (pointsRef.current.length > 2) {
       const lastPoint = pointsRef.current[pointsRef.current.length - 1];
       const prevPoint = pointsRef.current[pointsRef.current.length - 2];
@@ -102,20 +135,15 @@ const Canvas = ({ onSolve, isLoading }) => {
       const yc = (prevPoint.y + lastPoint.y) / 2;
       
       ctx.beginPath();
-      // Draw curve from midpoint of (prevPrev, prev) to midpoint of (prev, last)
       const xStart = (prevPrevPoint.x + prevPoint.x) / 2;
       const yStart = (prevPrevPoint.y + prevPoint.y) / 2;
       
       ctx.moveTo(xStart, yStart);
       ctx.quadraticCurveTo(prevPoint.x, prevPoint.y, xc, yc);
-      ctx.strokeStyle = tool === 'erase' ? '#06070a' : '#ffffff';
-      ctx.lineWidth = brushSize;
       ctx.stroke();
     } else {
       // Direct line fallback
       ctx.lineTo(x, y);
-      ctx.strokeStyle = tool === 'erase' ? '#06070a' : '#ffffff';
-      ctx.lineWidth = brushSize;
       ctx.stroke();
     }
   };
@@ -133,8 +161,7 @@ const Canvas = ({ onSolve, isLoading }) => {
     }
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#06070a'; // Sleek dark canvas background
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear to transparency
     
     if (resetHistory) {
       setRedoStack([]);
@@ -148,10 +175,8 @@ const Canvas = ({ onSolve, isLoading }) => {
     const ctx = canvas.getContext('2d');
     const currentState = ctx.getImageData(0, 0, canvas.width, canvas.height);
     
-    // Push current state to redo stack
     setRedoStack((prev) => [...prev, currentState]);
     
-    // Pop from undo stack and draw
     const previousState = undoStack[undoStack.length - 1];
     setUndoStack((prev) => prev.slice(0, -1));
     ctx.putImageData(previousState, 0, 0);
@@ -164,23 +189,63 @@ const Canvas = ({ onSolve, isLoading }) => {
     const ctx = canvas.getContext('2d');
     const currentState = ctx.getImageData(0, 0, canvas.width, canvas.height);
     
-    // Push current to undo stack
     setUndoStack((prev) => [...prev, currentState]);
     
-    // Pop from redo stack and draw
     const nextState = redoStack[redoStack.length - 1];
     setRedoStack((prev) => prev.slice(0, -1));
     ctx.putImageData(nextState, 0, 0);
   };
 
+  // Helper to compile drawing onto solid black canvas with strokes mapped to pure white for OCR compatibility
+  const getCompiledCanvas = () => {
+    const canvas = canvasRef.current;
+    const offscreen = document.createElement('canvas');
+    offscreen.width = canvas.width;
+    offscreen.height = canvas.height;
+    const oCtx = offscreen.getContext('2d');
+    
+    // 1. Draw solid white rectangle over everything
+    oCtx.fillStyle = '#ffffff';
+    oCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+    
+    // 2. destination-in: Retains white color only where drawing strokes overlap (maps colors to white)
+    oCtx.globalCompositeOperation = 'destination-in';
+    oCtx.drawImage(canvas, 0, 0);
+    
+    // 3. destination-over: Places the solid black background behind the white strokes
+    oCtx.globalCompositeOperation = 'destination-over';
+    oCtx.fillStyle = '#06070a';
+    oCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+    
+    return offscreen;
+  };
+
   // Convert canvas to blob and trigger solve callback
   const handleSolve = () => {
-    const canvas = canvasRef.current;
-    canvas.toBlob((blob) => {
+    const compiled = getCompiledCanvas();
+    compiled.toBlob((blob) => {
       if (blob) {
         onSolve(blob);
       }
     }, 'image/png');
+  };
+
+  const handleExport = () => {
+    const canvas = canvasRef.current;
+    
+    // Export with its actual colors onto a solid black background
+    const offscreen = document.createElement('canvas');
+    offscreen.width = canvas.width;
+    offscreen.height = canvas.height;
+    const oCtx = offscreen.getContext('2d');
+    oCtx.fillStyle = '#06070a';
+    oCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+    oCtx.drawImage(canvas, 0, 0);
+    
+    const link = document.createElement('a');
+    link.download = 'drawcalc-equation.png';
+    link.href = offscreen.toDataURL('image/png');
+    link.click();
   };
 
   return (
@@ -207,6 +272,49 @@ const Canvas = ({ onSolve, isLoading }) => {
 
         <div className="toolbar-separator"></div>
 
+        {/* Color Selector Group */}
+        <div className="toolbar-group">
+          <span className="color-label">Color</span>
+          <div className="color-palette">
+            {COLORS.map((color) => (
+              <button
+                key={color.value}
+                className={`color-btn ${drawColor === color.value ? 'active' : ''}`}
+                style={{ backgroundColor: color.value, color: color.value }}
+                onClick={() => {
+                  setDrawColor(color.value);
+                  setTool('draw'); // Automatically switch to draw when selecting color
+                }}
+                title={color.name}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="toolbar-separator"></div>
+
+        <div className="toolbar-group">
+          <button 
+            className={`tool-btn ${gridEnabled ? 'active' : ''}`}
+            onClick={() => setGridEnabled(!gridEnabled)}
+            title="Toggle Grid Paper Background"
+          >
+            <Grid size={18} />
+            <span>Grid</span>
+          </button>
+          <button 
+            className={`tool-btn ${brushStyle === 'chalk' ? 'active' : ''}`}
+            onClick={() => setBrushStyle(brushStyle === 'solid' ? 'chalk' : 'solid')}
+            disabled={tool === 'erase'}
+            title="Toggle Chalk Glow Filter"
+          >
+            <Sparkles size={18} />
+            <span>Chalk Mode</span>
+          </button>
+        </div>
+
+        <div className="toolbar-separator"></div>
+
         <div className="toolbar-group">
           <label className="brush-slider-label">
             <span>Size</span>
@@ -225,6 +333,13 @@ const Canvas = ({ onSolve, isLoading }) => {
         <div className="toolbar-separator"></div>
 
         <div className="toolbar-group ml-auto">
+          <button 
+            onClick={handleExport}
+            className="action-btn"
+            title="Export drawing as PNG"
+          >
+            <Download size={18} />
+          </button>
           <button 
             onClick={handleUndo} 
             disabled={undoStack.length === 0}
@@ -261,7 +376,7 @@ const Canvas = ({ onSolve, isLoading }) => {
           onTouchStart={startDrawing}
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
-          className="math-canvas"
+          className={`math-canvas ${gridEnabled ? 'grid-bg' : ''}`}
         />
       </div>
 

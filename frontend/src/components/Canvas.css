@@ -226,3 +226,48 @@
     width: 100%;
   }
 }
+
+/* Grid blueprint background */
+.math-canvas.grid-bg {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-color: #06070a;
+}
+
+/* Color Selection Tool */
+.color-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-right: 4px;
+}
+
+.color-palette {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.color-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+  padding: 0;
+  outline: none;
+}
+
+.color-btn:hover {
+  transform: scale(1.15);
+}
+
+.color-btn.active {
+  border-color: #ffffff;
+  transform: scale(1.25);
+  box-shadow: 0 0 8px currentColor;
+}
+
