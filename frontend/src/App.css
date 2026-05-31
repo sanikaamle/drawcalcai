@@ -1,0 +1,257 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 20px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.app-logo {
+  color: var(--primary-hover);
+  filter: drop-shadow(0 0 8px var(--primary-glow));
+}
+
+.app-title-group h1 {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.app-title-group p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* App Main Layout Grid */
+.app-content {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+}
+
+.main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  min-width: 0; /* Prevent flex blowout */
+}
+
+.side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Results Panel */
+.result-panel {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.result-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--accent-emerald) 100%);
+}
+
+.panel-header {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.result-display {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formula-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.latex-container {
+  font-size: 1.8rem;
+  overflow-x: auto;
+  padding: 12px 0;
+  color: var(--text-primary);
+}
+
+.equals-divider {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: center;
+}
+
+.answer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.answer-value {
+  font-size: 2.2rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--accent-emerald);
+  text-shadow: 0 0 16px var(--accent-emerald-glow);
+}
+
+.details-indicator {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: hsla(222, 24%, 20%, 0.4);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+}
+
+/* Skeleton Loaders */
+.skeleton-loader {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 12px 0;
+}
+
+.skeleton-line {
+  height: 24px;
+  background: linear-gradient(90deg, hsla(222, 24%, 20%, 0.3) 25%, hsla(222, 24%, 30%, 0.45) 50%, hsla(222, 24%, 20%, 0.3) 75%);
+  background-size: 200% 100%;
+  animation: loadingShimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-line.title {
+  width: 40%;
+}
+
+.skeleton-line.body-lg {
+  height: 48px;
+  width: 75%;
+}
+
+.skeleton-line.body-md {
+  height: 36px;
+  width: 60%;
+}
+
+@keyframes loadingShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Error Panel */
+.error-panel {
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: hsla(346, 80%, 12%, 0.35);
+  border: 1px solid hsla(346, 80%, 55%, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--accent-rose);
+}
+
+.error-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.error-details h4 {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.error-details p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Empty State Results */
+.empty-result-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-result-state p {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.empty-result-state span {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 1024px) {
+  .app-content {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    max-height: 300px;
+  }
+  
+  .side-column {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .app {
+    padding: 16px;
+  }
+  
+  .app-title-group h1 {
+    font-size: 1.5rem;
+  }
+  
+  .latex-container {
+    font-size: 1.4rem;
+  }
+  
+  .answer-value {
+    font-size: 1.8rem;
+  }
+}

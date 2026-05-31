@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+**/node_modules/
+venv/
+**/venv/
+.venv/
+**/.venv/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Backend uploads & logs
+backend/uploads/
+backend/ocr_service.log
+*.log
+
+# OS / IDE files
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.AppleDouble
+.LSOverride
+__pycache__/
+*.pyc

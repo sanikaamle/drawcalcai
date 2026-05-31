@@ -1,0 +1,86 @@
+.graph-view {
+  padding: 20px;
+  width: 100%;
+}
+
+.graph-header {
+  margin-bottom: 16px;
+}
+
+.graph-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.graph-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.graph-chart-wrapper {
+  margin: 12px 0;
+  width: 100%;
+  display: block;
+}
+
+/* Tooltip Custom styling */
+.graph-tooltip {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: hsla(222, 24%, 10%, 0.85);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  font-size: 0.85rem;
+}
+
+.tooltip-x {
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.tooltip-val {
+  font-family: monospace;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Legend styling */
+.graph-legend {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-glass);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.lhs-color {
+  background: hsl(262, 80%, 60%);
+  box-shadow: 0 0 8px hsla(262, 80%, 60%, 0.5);
+}
+
+.rhs-color {
+  background: hsl(142, 70%, 45%);
+  box-shadow: 0 0 8px hsla(142, 70%, 45%, 0.5);
+}
+
+.legend-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
