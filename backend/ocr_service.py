@@ -6,50 +6,69 @@ import uvicorn
 
 app = FastAPI()
 
+print("✅ FastAPI app created")
+
+@app.on_event("startup")
+async def startup_event():
+    print("✅ FastAPI startup event triggered")
+
 p2t = None
 
 def get_p2t():
     global p2t
+
     if p2t is None:
         try:
-            print("Initializing Pix2Text model... (This downloads models on first use)")
+            print("🚀 Initializing Pix2Text model...")
             p2t = Pix2Text.from_config()
-            print("Pix2Text model initialized successfully.")
+            print("✅ Pix2Text model initialized successfully")
         except Exception as e:
-            print(f"Error initializing Pix2Text: {e}")
-            raise e
+            print(f"❌ Error initializing Pix2Text: {e}")
+            raise
+
     return p2t
 
-@app.post("/ocr")
-async def recognize_formula(file: UploadFile = File(...)):
-    try:
-        # Read the uploaded image file bytes
-        contents = await file.read()
-        image = Image.open(io.BytesIO(contents)).convert('RGB')
-        
-        # DrawCalc AI uses a black canvas with white drawings.
-        # Pix2Text expects black text on a white background.
-        # We invert the colors of the image to match Pix2Text training distribution.
-        inverted_image = ImageOps.invert(image)
-        
-        # Run Pix2Text formula OCR
-        model = get_p2t()
-        latex_result = model.recognize_formula(inverted_image)
-        
-        print(f"OCR Recognized LaTeX: {latex_result}")
-        return {"latex": latex_result}
-    except Exception as e:
-        print(f"OCR Service error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/")
+def root():
+    return {"message": "OCR Service Running"}
+
 
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "Pix2Text OCR Service"}
 
-if __name__ == "__main__":
-    # Load model on startup
+
+@app.post("/ocr")
+async def recognize_formula(file: UploadFile = File(...)):
     try:
-        get_p2t()
-    except Exception:
-        pass
-    uvicorn.run(app, host="127.0.0.1", port=5001)
+        contents = await file.read()
+
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
+
+        # Invert black canvas -> white background
+        inverted_image = ImageOps.invert(image)
+
+        model = get_p2t()
+
+        latex_result = model.recognize_formula(inverted_image)
+
+        print(f"📄 OCR Result: {latex_result}")
+
+        return {
+            "success": True,
+            "latex": latex_result
+        }
+
+    except Exception as e:
+        print(f"❌ OCR Service Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "ocr_service:app",
+        host="0.0.0.0",
+        port=5001,
+        reload=False
+    )
