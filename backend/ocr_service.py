@@ -65,10 +65,11 @@ async def recognize_formula(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+import os
+
 if __name__ == "__main__":
     uvicorn.run(
-        "ocr_service:app",
+        app,
         host="0.0.0.0",
-        port=5001,
-        reload=False
+        port=int(os.environ.get("PORT", 5001))
     )
