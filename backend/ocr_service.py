@@ -1,8 +1,19 @@
+print("STEP 1")
 import io
+
+print("STEP 2")
 from fastapi import FastAPI, UploadFile, File, HTTPException
+
+print("STEP 3")
 from PIL import Image, ImageOps
+
+print("STEP 4")
 from pix2text import Pix2Text
+
+print("STEP 5")
 import uvicorn
+
+print("STEP 6")
 
 app = FastAPI()
 
